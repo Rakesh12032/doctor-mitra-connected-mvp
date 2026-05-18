@@ -1,0 +1,123 @@
+{
+  "currentUserId": null,
+  "maintenanceMode": false,
+  "users": [
+    {
+      "id": "admin-1",
+      "role": "admin",
+      "name": "Doctor Mitra Admin",
+      "mobile": "",
+      "email": "admin@doctormitra.in",
+      "password": "admin123",
+      "district": "Patna",
+      "createdAt": "2026-05-18T19:12:38.670Z"
+    },
+    {
+      "id": "patient-1",
+      "role": "patient",
+      "name": "Rakesh Kumar",
+      "mobile": "9876543210",
+      "email": "",
+      "district": "Patna",
+      "createdAt": "2026-05-18T19:12:38.711Z"
+    },
+    {
+      "id": "doctor-user-1",
+      "role": "doctor",
+      "name": "Dr. Rajeev Kumar",
+      "mobile": "9000000001",
+      "email": "rajeev@doctormitra.in",
+      "password": "doctor123",
+      "district": "Patna",
+      "createdAt": "2026-05-18T19:12:38.711Z"
+    }
+  ],
+  "doctors": [
+    {
+      "id": "doctor-1",
+      "userId": "doctor-user-1",
+      "name": "Dr. Rajeev Kumar",
+      "specialty": "General Physician",
+      "degree": "MBBS, MD (Medicine)",
+      "experience": 15,
+      "registrationNumber": "BRMC-10234",
+      "clinicName": "Aarogya Clinic",
+      "address": "Boring Road, Patna",
+      "district": "Patna",
+      "fee": 400,
+      "onlineFee": 250,
+      "rating": 4.7,
+      "reviews": 312,
+      "status": "approved",
+      "isOnlineAvailable": true,
+      "slots": [
+        "09:00",
+        "09:30",
+        "10:00",
+        "10:30",
+        "17:00",
+        "17:30"
+      ]
+    }
+  ],
+  "bookings": [
+    {
+      "id": "booking-1",
+      "patientId": "patient-1",
+      "doctorId": "doctor-1",
+      "patientName": "Rakesh Kumar",
+      "patientMobile": "9876543210",
+      "type": "clinic",
+      "date": "19 May 2026",
+      "time": "09:00",
+      "symptoms": "Fever and body pain",
+      "fee": 400,
+      "status": "pending",
+      "createdAt": "2026-05-18T19:12:38.711Z"
+    }
+  ],
+  "hospitals": [
+    {
+      "id": "hospital-1",
+      "name": "Patna City Hospital",
+      "district": "Patna",
+      "address": "Bailey Road, Patna",
+      "phone": "0612-2200001",
+      "type": "Multispeciality"
+    }
+  ],
+  "ambulances": [
+    {
+      "id": "amb-1",
+      "name": "Bihar Emergency 102",
+      "district": "All Bihar",
+      "phone": "102",
+      "isAvailable": true
+    }
+  ],
+  "healthCards": [
+    {
+      "id": "hc-1",
+      "userId": "patient-1",
+      "bloodGroup": "O+",
+      "allergies": "Dust, Penicillin",
+      "medications": "None",
+      "emergencyContact": "9876543211"
+    }
+  ],
+  "notifications": [],
+  "prescriptions": [],
+  "specialties": [
+    "General Physician",
+    "Gynecologist",
+    "Cardiologist",
+    "Dermatologist",
+    "Neurologist",
+    "Dentist"
+  ],
+  "healthTips": [
+    "Drink safe water and keep ORS at home.",
+    "Book follow-ups early for chronic conditions.",
+    "Use emergency number 102 for ambulance help."
+  ]
+}
