@@ -15,69 +15,18 @@ class HealthCardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(lang.t('health_card')),
-        actions: const [LanguageToggle()],
+        actions: const [Padding(padding: EdgeInsets.only(right: 8.0), child: LanguageToggle())],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.secondary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('DOCTOR MITRA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.health_and_safety, color: Colors.white, size: 24),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    const Text('Rajeev Kumar', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                    const SizedBox(height: 4),
-                    const Text('ID: DM-HC-98765432', style: TextStyle(color: Colors.white70, fontSize: 13, letterSpacing: 1.5)),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildCardItem(lang.t('blood_group'), 'O+'),
-                          Container(width: 1, height: 30, color: Colors.white.withOpacity(0.3)),
-                          _buildCardItem(lang.t('age'), '32 Yrs'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildDigitalCard(context),
               const SizedBox(height: 32),
               SectionHeader(title: lang.isHindi ? 'मेडिकल जानकारी' : 'Medical Information'),
               const SizedBox(height: 16),
@@ -87,14 +36,14 @@ class HealthCardScreen extends StatelessWidget {
                 title: lang.t('allergies'),
                 subtitle: 'Dust, Penicillin',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _buildInfoTile(
                 icon: Icons.medication_outlined,
                 iconColor: AppColors.primary,
                 title: lang.t('medications'),
                 subtitle: 'None currently',
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
               AppButton(
                 text: lang.t('download_card'),
                 icon: Icons.download_outlined,
@@ -107,11 +56,109 @@ class HealthCardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildDigitalCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 24, offset: const Offset(0, 12)),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background pattern
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Icon(Icons.health_and_safety, size: 160, color: Colors.white.withOpacity(0.05)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('DOCTOR MITRA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2, fontSize: 16)),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.verified_user, color: Colors.white, size: 20),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Rajeev Kumar', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                          const SizedBox(height: 8),
+                          Text('ID: DM-HC-98765432', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14, letterSpacing: 1.2, fontFamily: 'monospace')),
+                        ],
+                      ),
+                    ),
+                    // QR Code Placeholder
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
+                        ],
+                      ),
+                      child: const Icon(Icons.qr_code_2, size: 48, color: AppColors.textDark),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildCardItem('BLOOD', 'O+'),
+                      Container(width: 1, height: 32, color: Colors.white.withOpacity(0.3)),
+                      _buildCardItem('AGE', '32 Yrs'),
+                      Container(width: 1, height: 32, color: Colors.white.withOpacity(0.3)),
+                      _buildCardItem('GENDER', 'Male'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCardItem(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11, letterSpacing: 1)),
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
       ],
@@ -123,18 +170,21 @@ class HealthCardScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 4)),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: iconColor),
+            child: Icon(icon, color: iconColor, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(

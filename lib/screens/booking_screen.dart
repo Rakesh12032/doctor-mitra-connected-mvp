@@ -26,7 +26,7 @@ class _BookingScreenState extends State<BookingScreen> {
   final _phoneController = TextEditingController();
   final _symptomsController = TextEditingController();
   String? _selectedSlot;
-  int _currentStep = 1; // 1: Time, 2: Details
+  int _currentStep = 1;
 
   @override
   void dispose() {
@@ -44,8 +44,10 @@ class _BookingScreenState extends State<BookingScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(lang.t('book_appointment')),
-        actions: const [LanguageToggle()],
+        actions: const [Padding(padding: EdgeInsets.only(right: 8.0), child: LanguageToggle())],
       ),
       body: SafeArea(
         child: Column(
@@ -53,14 +55,27 @@ class _BookingScreenState extends State<BookingScreen> {
             _buildStepIndicator(lang),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildDoctorSummary(isHi),
-                    const SizedBox(height: 24),
-                    if (_currentStep == 1) _buildTimeSelection(lang),
-                    if (_currentStep == 2) _buildPatientDetailsForm(lang),
+                    const SizedBox(height: 32),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(begin: const Offset(0.05, 0), end: Offset.zero).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _currentStep == 1 
+                        ? _buildTimeSelection(lang)
+                        : _buildPatientDetailsForm(lang),
+                    ),
                     const SizedBox(height: 80),
                   ],
                 ),
@@ -69,35 +84,36 @@ class _BookingScreenState extends State<BookingScreen> {
           ],
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.cardBg,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: AppButton(
-            text: _currentStep == 1 ? (isHi ? 'अगला' : 'Next') : lang.t('confirm_booking'),
-            onPressed: () {
-              if (_currentStep == 1) {
-                if (_selectedSlot == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(isHi ? 'कृपया एक स्लॉट चुनें' : 'Please select a slot')),
-                  );
-                  return;
-                }
-                setState(() => _currentStep = 2);
-              } else {
-                _confirmBooking(lang);
+      bottomNavigationBar: _buildStickyButton(isHi, lang),
+    );
+  }
+
+  Widget _buildStickyButton(bool isHi, LanguageProvider lang) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, -5)),
+        ],
+        border: const Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        child: AppButton(
+          text: _currentStep == 1 ? (isHi ? 'आगे बढ़ें' : 'Next Step') : lang.t('confirm_booking'),
+          onPressed: () {
+            if (_currentStep == 1) {
+              if (_selectedSlot == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(isHi ? 'कृपया एक स्लॉट चुनें' : 'Please select a slot'), backgroundColor: AppColors.error),
+                );
+                return;
               }
-            },
-          ),
+              setState(() => _currentStep = 2);
+            } else {
+              _confirmBooking(lang);
+            }
+          },
         ),
       ),
     );
@@ -105,59 +121,77 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _buildStepIndicator(LanguageProvider lang) {
     return Container(
-      color: AppColors.cardBg,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+      color: Colors.transparent,
       child: Row(
         children: [
-          _buildStepCircle('1', _currentStep >= 1),
-          Expanded(child: Container(height: 2, color: _currentStep >= 2 ? AppColors.primary : AppColors.border)),
-          _buildStepCircle('2', _currentStep >= 2),
+          _buildStepCircle('1', _currentStep >= 1, lang.isHindi ? 'समय' : 'Time'),
+          Expanded(child: Container(height: 3, color: _currentStep >= 2 ? AppColors.primary : AppColors.border.withOpacity(0.5))),
+          _buildStepCircle('2', _currentStep >= 2, lang.isHindi ? 'विवरण' : 'Details'),
         ],
       ),
     );
   }
 
-  Widget _buildStepCircle(String step, bool isActive) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.primary : AppColors.lightBackground,
-        shape: BoxShape.circle,
-        border: Border.all(color: isActive ? AppColors.primary : AppColors.border),
-      ),
-      child: Center(
-        child: Text(
-          step,
-          style: TextStyle(
-            color: isActive ? Colors.white : AppColors.textMuted,
-            fontWeight: FontWeight.bold,
+  Widget _buildStepCircle(String step, bool isActive, String label) {
+    return Column(
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.primary : AppColors.cardBg,
+            shape: BoxShape.circle,
+            border: Border.all(color: isActive ? AppColors.primary : AppColors.border, width: 2),
+            boxShadow: isActive ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, spreadRadius: 1)] : [],
+          ),
+          child: Center(
+            child: isActive && step == '1' && _currentStep == 2
+              ? const Icon(Icons.check, color: Colors.white, size: 20)
+              : Text(
+                  step,
+                  style: TextStyle(color: isActive ? Colors.white : AppColors.textMuted, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: isActive ? AppColors.textDark : AppColors.textMuted,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildDoctorSummary(bool isHi) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
               color: widget.doctor.specialtyColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.circle,
+              border: Border.all(color: widget.doctor.specialtyColor.withOpacity(0.2), width: 2),
             ),
             child: Icon(Icons.person, color: widget.doctor.specialtyColor, size: 36),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,13 +205,24 @@ class _BookingScreenState extends State<BookingScreen> {
                   isHi ? widget.doctor.specialtyHi : widget.doctor.specialtyEn,
                   style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 14),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.payment, size: 16, color: AppColors.textMuted),
-                    const SizedBox(width: 4),
-                    Text('₹${widget.doctor.fee}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                  ],
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.payment, size: 16, color: AppColors.textDark),
+                      const SizedBox(width: 8),
+                      Text(
+                        '₹${widget.doctor.fee}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark, fontSize: 14),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -189,17 +234,22 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _buildTimeSelection(LanguageProvider lang) {
     return Column(
+      key: const ValueKey(1),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(title: lang.t('select_slot')),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: widget.doctor.slots.map((slot) {
             final isSelected = _selectedSlot == slot;
             return ChoiceChip(
-              label: Text(slot),
+              label: Container(
+                width: 80,
+                alignment: Alignment.center,
+                child: Text(slot),
+              ),
               selected: isSelected,
               onSelected: (selected) {
                 setState(() => _selectedSlot = selected ? slot : null);
@@ -207,15 +257,15 @@ class _BookingScreenState extends State<BookingScreen> {
               selectedColor: AppColors.primary,
               backgroundColor: AppColors.cardBg,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textMedium,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : AppColors.textDark,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 fontSize: 14,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: isSelected ? AppColors.primary : AppColors.border),
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: isSelected ? AppColors.primary : AppColors.border, width: isSelected ? 2 : 1),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 14),
             );
           }).toList(),
         ),
@@ -227,10 +277,22 @@ class _BookingScreenState extends State<BookingScreen> {
     return Form(
       key: _formKey,
       child: Column(
+        key: const ValueKey(2),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeader(title: lang.t('patient_name')),
-          const SizedBox(height: 16),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() => _currentStep = 1),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 8),
+              SectionHeader(title: lang.t('patient_name')),
+            ],
+          ),
+          const SizedBox(height: 20),
           TextFormField(
             controller: _nameController,
             textInputAction: TextInputAction.next,
@@ -302,11 +364,14 @@ class _BookingScreenState extends State<BookingScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => BookingConfirmScreen(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => BookingConfirmScreen(
           booking: booking,
           doctor: widget.doctor,
         ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
       ),
     );
   }

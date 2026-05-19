@@ -20,8 +20,10 @@ class DoctorProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(lang.t('view_profile')),
-        actions: const [LanguageToggle()],
+        actions: const [Padding(padding: EdgeInsets.only(right: 8.0), child: LanguageToggle())],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -29,43 +31,53 @@ class DoctorProfileScreen extends StatelessWidget {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                decoration: const BoxDecoration(
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+                decoration: BoxDecoration(
                   color: AppColors.cardBg,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
                   ),
-                  border: Border(bottom: BorderSide(color: AppColors.border)),
+                  border: const Border(bottom: BorderSide(color: AppColors.border)),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 20, offset: const Offset(0, 8)),
+                  ],
                 ),
                 child: Column(
                   children: [
                     Container(
-                      width: 96,
-                      height: 96,
+                      width: 110,
+                      height: 110,
                       decoration: BoxDecoration(
                         color: doctor.specialtyColor.withOpacity(0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: doctor.specialtyColor.withOpacity(0.3), width: 2),
+                        border: Border.all(color: doctor.specialtyColor.withOpacity(0.2), width: 3),
                       ),
-                      child: Icon(Icons.person, size: 48, color: doctor.specialtyColor),
+                      child: Icon(Icons.person, size: 54, color: doctor.specialtyColor),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Text(
                       isHi ? doctor.nameHi : doctor.nameEn,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark, letterSpacing: -0.5),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isHi ? doctor.specialtyHi : doctor.specialtyEn,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary),
-                      textAlign: TextAlign.center,
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: doctor.specialtyColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        isHi ? doctor.specialtyHi : doctor.specialtyEn,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: doctor.specialtyColor),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 12),
                     Text(
                       isHi ? doctor.degreeHi : doctor.degreeEn,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+                      style: const TextStyle(fontSize: 15, color: AppColors.textMedium, fontWeight: FontWeight.w500),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -75,61 +87,75 @@ class DoctorProfileScreen extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Expanded(child: _buildInfoCard(lang.t('experience'), '${doctor.experience} Yrs', Icons.work_outline)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildInfoCard(lang.t('rating'), '${doctor.rating} (${doctor.reviews})', Icons.star_border)),
+                        Expanded(child: _buildInfoCard(lang.t('experience'), '${doctor.experience} Yrs', Icons.work_rounded)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildInfoCard(lang.t('rating'), '${doctor.rating} (${doctor.reviews})', Icons.star_rounded)),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: _buildInfoCard(lang.t('fee'), '₹${doctor.fee}', Icons.account_balance_wallet_outlined)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildInfoCard(lang.isHindi ? 'मरीज़' : 'Patients', '1k+', Icons.people_outline)),
+                        Expanded(child: _buildInfoCard(lang.t('fee'), '₹${doctor.fee}', Icons.account_balance_wallet_rounded)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildInfoCard(lang.isHindi ? 'मरीज़' : 'Patients', '1k+', Icons.people_rounded)),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     SectionHeader(title: lang.isHindi ? 'क्लिनिक की जानकारी' : 'Clinic Details'),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: AppColors.cardBg,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: AppColors.border),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.local_hospital_outlined, color: AppColors.primary, size: 24),
-                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                child: const Icon(Icons.local_hospital_rounded, color: AppColors.primary, size: 24),
+                              ),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
                                   isHi ? doctor.clinicHi : doctor.clinicEn,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.location_on_outlined, color: AppColors.textMuted, size: 20),
-                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(color: AppColors.lightBackground, borderRadius: BorderRadius.circular(10)),
+                                child: const Icon(Icons.location_on_rounded, color: AppColors.textMedium, size: 24),
+                              ),
+                              const SizedBox(width: 16),
                               Expanded(
-                                child: Text(
-                                  isHi ? doctor.districtHi : doctor.districtEn,
-                                  style: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.4),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    isHi ? doctor.districtHi : doctor.districtEn,
+                                    style: const TextStyle(fontSize: 15, color: AppColors.textMedium, height: 1.5),
+                                  ),
                                 ),
                               ),
                             ],
@@ -137,7 +163,7 @@ class DoctorProfileScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 80), // Padding for sticky bottom button
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -145,17 +171,14 @@ class DoctorProfileScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: AppColors.cardBg,
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, -5)),
           ],
+          border: const Border(top: BorderSide(color: AppColors.border)),
         ),
         child: SafeArea(
           child: AppButton(
@@ -163,8 +186,11 @@ class DoctorProfileScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => BookingScreen(doctor: doctor),
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => BookingScreen(doctor: doctor),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
                 ),
               );
             },
@@ -176,15 +202,25 @@ class DoctorProfileScreen extends StatelessWidget {
 
   Widget _buildInfoCard(String label, String value, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: AppColors.primary, size: 28),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: AppColors.lightBackground,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 28),
+          ),
           const SizedBox(height: 12),
           Text(
             value,
@@ -193,7 +229,7 @@ class DoctorProfileScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+            style: const TextStyle(color: AppColors.textMedium, fontSize: 13, fontWeight: FontWeight.w500),
           ),
         ],
       ),

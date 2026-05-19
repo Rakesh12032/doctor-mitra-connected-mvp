@@ -38,15 +38,20 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(lang.t('doctors')),
-        actions: const [LanguageToggle()],
+        actions: const [Padding(padding: EdgeInsets.only(right: 8.0), child: LanguageToggle())],
       ),
       body: SafeArea(
         child: Column(
           children: [
             Container(
-              color: AppColors.cardBg,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
+                color: AppColors.cardBg,
+                border: Border(bottom: BorderSide(color: AppColors.border)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 children: [
                   TextField(
@@ -60,9 +65,9 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                       prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   SizedBox(
-                    height: 38,
+                    height: 40,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       children: [
@@ -85,20 +90,30 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.search_off, size: 64, color: AppColors.textMuted.withOpacity(0.5)),
-                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: const BoxDecoration(
+                              color: AppColors.lightBackground,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.search_off_rounded, size: 48, color: AppColors.textMuted.withOpacity(0.5)),
+                          ),
+                          const SizedBox(height: 24),
                           Text(
                             lang.isHindi ? 'कोई डॉक्टर नहीं मिला' : 'No doctors found',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
                           ),
                         ],
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                       itemCount: filteredDoctors.length,
                       itemBuilder: (context, index) {
-                        return DoctorCard(doctor: filteredDoctors[index]);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: DoctorCard(doctor: filteredDoctors[index]),
+                        );
                       },
                     ),
             ),
@@ -120,17 +135,19 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
       },
       selectedColor: AppColors.primary,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : AppColors.textMedium,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-        fontSize: 13,
+        color: isSelected ? Colors.white : AppColors.textDark,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+        fontSize: 14,
       ),
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: AppColors.background,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isSelected ? AppColors.primary : Colors.transparent,
+          color: isSelected ? AppColors.primary : AppColors.border,
+          width: isSelected ? 2 : 1,
         ),
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
   }
 }

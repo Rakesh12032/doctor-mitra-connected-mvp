@@ -32,49 +32,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
+          color: Colors.white,
+          border: const Border(top: BorderSide(color: AppColors.border)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
               offset: const Offset(0, -5),
             ),
           ],
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textMuted,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          items: [
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.home_outlined),
-              activeIcon: const Icon(Icons.home),
-              label: lang.t('home'),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              selectedItemColor: AppColors.primary,
+              unselectedItemColor: AppColors.textMuted,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              items: [
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.home_outlined),
+                  activeIcon: const Icon(Icons.home_rounded),
+                  label: lang.t('home'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.people_outline),
+                  activeIcon: const Icon(Icons.people_rounded),
+                  label: lang.t('doctors'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.calendar_today_outlined),
+                  activeIcon: const Icon(Icons.calendar_today_rounded),
+                  label: lang.t('my_bookings'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.person_outline),
+                  activeIcon: const Icon(Icons.person_rounded),
+                  label: lang.t('profile'),
+                ),
+              ],
             ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.people_outline),
-              activeIcon: const Icon(Icons.people),
-              label: lang.t('doctors'),
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.calendar_today_outlined),
-              activeIcon: const Icon(Icons.calendar_today),
-              label: lang.t('my_bookings'),
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.person_outline),
-              activeIcon: const Icon(Icons.person),
-              label: lang.t('profile'),
-            ),
-          ],
+          ),
         ),
       ),
     );

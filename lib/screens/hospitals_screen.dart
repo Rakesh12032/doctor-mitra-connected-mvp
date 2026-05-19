@@ -42,31 +42,33 @@ class HospitalsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(lang.t('hospitals')),
-        actions: const [LanguageToggle()],
+        actions: const [Padding(padding: EdgeInsets.only(right: 8.0), child: LanguageToggle())],
       ),
       body: SafeArea(
         child: ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           itemCount: mockHospitals.length,
           itemBuilder: (context, index) {
             final hospital = mockHospitals[index];
             return Container(
-              margin: const EdgeInsets.only(bottom: 16),
+              margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   )
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -74,13 +76,13 @@ class HospitalsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 56,
-                          height: 56,
+                          width: 64,
+                          height: 64,
                           decoration: BoxDecoration(
-                            color: AppColors.error.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.error.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.local_hospital_outlined, color: AppColors.error, size: 32),
+                          child: const Icon(Icons.local_hospital_rounded, color: AppColors.error, size: 36),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -91,15 +93,15 @@ class HospitalsScreen extends StatelessWidget {
                                 isHi ? hospital['nameHi']! : hospital['nameEn']!,
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textMuted),
+                                  const Icon(Icons.location_on_rounded, size: 16, color: AppColors.textMedium),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
                                       isHi ? hospital['addressHi']! : hospital['addressEn']!,
-                                      style: const TextStyle(color: AppColors.textMedium, fontSize: 13),
+                                      style: const TextStyle(color: AppColors.textMedium, fontSize: 14),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -111,34 +113,57 @@ class HospitalsScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     const Divider(color: AppColors.border, height: 1),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.star, color: AppColors.warning, size: 18),
-                            const SizedBox(width: 4),
-                            Text(hospital['rating']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 12),
-                            const Icon(Icons.directions_walk, color: AppColors.primary, size: 18),
-                            const SizedBox(width: 4),
-                            Text(hospital['distance']!, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.warning.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.star_rounded, color: AppColors.warning, size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(hospital['rating']!, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark, fontSize: 13)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.directions_walk_rounded, color: AppColors.primary, size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(hospital['distance']!, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 13)),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                         SizedBox(
-                          height: 36,
+                          height: 40,
                           child: ElevatedButton(
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 0,
                             ),
-                            child: Text(isHi ? 'दिशा निर्देश' : 'Directions', style: const TextStyle(fontSize: 13)),
+                            child: Text(isHi ? 'दिशा निर्देश' : 'Directions', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ],

@@ -22,14 +22,14 @@ class AppTheme {
         surface: AppColors.cardBg,
       ),
       textTheme: baseTextTheme.copyWith(
-        displayLarge: baseTextTheme.displayLarge?.copyWith(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.textDark),
-        headlineSmall: baseTextTheme.headlineSmall?.copyWith(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark),
-        titleLarge: baseTextTheme.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        titleMedium: baseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(fontSize: 15, color: AppColors.textDark),
+        displayLarge: baseTextTheme.displayLarge?.copyWith(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark),
+        headlineSmall: baseTextTheme.headlineSmall?.copyWith(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+        titleLarge: baseTextTheme.titleLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textDark),
+        titleMedium: baseTextTheme.titleMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(fontSize: 14, color: AppColors.textDark),
         bodyMedium: baseTextTheme.bodyMedium?.copyWith(fontSize: 14, color: AppColors.textMedium),
-        bodySmall: baseTextTheme.bodySmall?.copyWith(fontSize: 13, color: AppColors.textMuted),
-        labelLarge: baseTextTheme.labelLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+        bodySmall: baseTextTheme.bodySmall?.copyWith(fontSize: 12, color: AppColors.textMuted),
+        labelLarge: baseTextTheme.labelLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
         labelSmall: baseTextTheme.labelSmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
       ).apply(
         bodyColor: AppColors.textMedium,
@@ -44,7 +44,7 @@ class AppTheme {
         titleTextStyle: baseTextTheme.titleLarge?.copyWith(
           color: AppColors.textDark,
           fontWeight: FontWeight.bold,
-          fontSize: 22,
+          fontSize: 20,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -57,7 +57,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -69,14 +69,14 @@ class AppTheme {
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       cardTheme: CardTheme(
         color: AppColors.cardBg,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           side: const BorderSide(color: AppColors.border, width: 1),
         ),
         margin: EdgeInsets.zero,
@@ -86,23 +86,23 @@ class AppTheme {
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
-        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 15),
-        labelStyle: const TextStyle(color: AppColors.textMedium, fontSize: 15),
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+        labelStyle: const TextStyle(color: AppColors.textMedium, fontSize: 14),
         errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
       ),
       chipTheme: ChipThemeData(

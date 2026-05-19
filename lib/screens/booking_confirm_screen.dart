@@ -7,7 +7,7 @@ import '../providers/language_provider.dart';
 import '../theme/app_colors.dart';
 import '../widgets/custom_ui.dart';
 
-class BookingConfirmScreen extends StatelessWidget {
+class BookingConfirmScreen extends StatefulWidget {
   final Booking booking;
   final Doctor doctor;
 
@@ -18,9 +18,36 @@ class BookingConfirmScreen extends StatelessWidget {
   });
 
   @override
+  State<BookingConfirmScreen> createState() => _BookingConfirmScreenState();
+}
+
+class _BookingConfirmScreenState extends State<BookingConfirmScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final lang = Provider.of<LanguageProvider>(context);
-    final doctorName = lang.isHindi ? doctor.nameHi : doctor.nameEn;
+    final doctorName = lang.isHindi ? widget.doctor.nameHi : widget.doctor.nameEn;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -31,53 +58,59 @@ class BookingConfirmScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
-                    shape: BoxShape.circle,
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 80),
                   ),
-                  child: const Icon(Icons.check_circle, color: AppColors.success, size: 64),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 Text(
                   lang.t('booking_confirmed'),
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.textDark, letterSpacing: -0.5),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   lang.t('booking_saved'),
-                  style: const TextStyle(fontSize: 15, color: AppColors.textMedium),
+                  style: const TextStyle(fontSize: 16, color: AppColors.textMedium),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: AppColors.border),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 20, offset: const Offset(0, 8)),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      _buildDetailRow(lang.t('booking_id'), booking.id.substring(0, 8).toUpperCase()),
-                      const Divider(color: AppColors.border, height: 24),
-                      _buildDetailRow(lang.t('patient_name'), booking.patientName),
-                      const Divider(color: AppColors.border, height: 24),
+                      _buildDetailRow(lang.t('booking_id'), widget.booking.id.substring(0, 8).toUpperCase()),
+                      const Divider(color: AppColors.border, height: 32),
+                      _buildDetailRow(lang.t('patient_name'), widget.booking.patientName),
+                      const Divider(color: AppColors.border, height: 32),
                       _buildDetailRow(lang.t('doctors'), doctorName),
-                      const Divider(color: AppColors.border, height: 24),
-                      _buildDetailRow(lang.t('select_slot'), '${booking.date}, ${booking.time}'),
-                      const Divider(color: AppColors.border, height: 24),
-                      _buildDetailRow(lang.t('fee'), '₹${booking.fee.toStringAsFixed(0)}'),
+                      const Divider(color: AppColors.border, height: 32),
+                      _buildDetailRow(lang.t('select_slot'), '${widget.booking.date}, ${widget.booking.time}'),
+                      const Divider(color: AppColors.border, height: 32),
+                      _buildDetailRow(lang.t('fee'), '₹${widget.booking.fee.toStringAsFixed(0)}', isHighlight: true),
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 AppButton(
                   text: lang.t('share_whatsapp'),
-                  icon: Icons.share,
+                  icon: Icons.share_rounded,
                   isPrimary: false,
                   onPressed: () => _shareBooking(lang, doctorName),
                 ),
@@ -97,7 +130,7 @@ class BookingConfirmScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, {bool isHighlight = false}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -109,7 +142,11 @@ class BookingConfirmScreen extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold, 
+              color: isHighlight ? AppColors.primary : AppColors.textDark, 
+              fontSize: isHighlight ? 16 : 14,
+            ),
           ),
         ),
       ],
@@ -119,11 +156,11 @@ class BookingConfirmScreen extends StatelessWidget {
   Future<void> _shareBooking(LanguageProvider lang, String doctorName) async {
     final message = '''
 ${lang.t('booking_confirmed')}
-${lang.t('booking_id')}: ${booking.id.substring(0, 8).toUpperCase()}
-${lang.t('patient_name')}: ${booking.patientName}
+${lang.t('booking_id')}: ${widget.booking.id.substring(0, 8).toUpperCase()}
+${lang.t('patient_name')}: ${widget.booking.patientName}
 ${lang.t('doctors')}: $doctorName
-${lang.t('select_slot')}: ${booking.date}, ${booking.time}
-${lang.t('fee')}: ₹${booking.fee.toStringAsFixed(0)}
+${lang.t('select_slot')}: ${widget.booking.date}, ${widget.booking.time}
+${lang.t('fee')}: ₹${widget.booking.fee.toStringAsFixed(0)}
 ''';
 
     final url = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(message)}');

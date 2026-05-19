@@ -17,51 +17,60 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(lang.t('profile')),
-        actions: const [LanguageToggle()],
+        actions: const [Padding(padding: EdgeInsets.only(right: 8.0), child: LanguageToggle())],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
                 decoration: BoxDecoration(
                   color: AppColors.cardBg,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: AppColors.border),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+                    BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 8))
                   ],
                 ),
                 child: Column(
                   children: [
                     Container(
-                      width: 96,
-                      height: 96,
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.1),
+                        color: AppColors.primary.withOpacity(0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.secondary.withOpacity(0.3), width: 2),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 3),
                       ),
-                      child: const Icon(Icons.person, size: 48, color: AppColors.primary),
+                      child: const Icon(Icons.person, size: 50, color: AppColors.primary),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     const Text(
                       'Rajeev Kumar',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark, letterSpacing: -0.5),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      lang.isHindi ? 'मरीज़' : 'Patient',
-                      style: const TextStyle(fontSize: 15, color: AppColors.textMedium),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        lang.isHindi ? 'मरीज़' : 'Patient',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.secondary),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               _buildProfileOption(
                 context: context,
                 icon: Icons.phone_outlined,
@@ -74,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
                   }
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _buildProfileOption(
                 context: context,
                 icon: Icons.health_and_safety_outlined,
@@ -84,7 +93,7 @@ class ProfileScreen extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const HealthCardScreen()));
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _buildProfileOption(
                 context: context,
                 icon: Icons.settings_outlined,
@@ -92,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
                 showArrow: true,
                 onTap: () {},
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -104,28 +113,32 @@ class ProfileScreen extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error.withOpacity(0.1),
+                    backgroundColor: AppColors.cardBg,
                     foregroundColor: AppColors.error,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: AppColors.error, width: 1.5),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.logout, size: 20),
+                      const Icon(Icons.logout, size: 22),
                       const SizedBox(width: 8),
                       Text(lang.t('logout'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               const Text(
                 'v1.0.0',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                style: TextStyle(color: AppColors.textMuted, fontSize: 13, fontWeight: FontWeight.w500),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -141,41 +154,49 @@ class ProfileScreen extends StatelessWidget {
     bool showArrow = false,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.lightBackground,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: AppColors.primary, size: 24),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: AppColors.primary, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(subtitle, style: const TextStyle(color: AppColors.textMedium, fontSize: 14)),
+                      ],
+                    ],
+                  ),
+                ),
+                if (showArrow) const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 28),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: AppColors.textDark)),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 4),
-                    Text(subtitle, style: const TextStyle(color: AppColors.textMedium, fontSize: 13)),
-                  ],
-                ],
-              ),
-            ),
-            if (showArrow) const Icon(Icons.chevron_right, color: AppColors.textMuted),
-          ],
+          ),
         ),
       ),
     );
