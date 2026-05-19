@@ -734,6 +734,123 @@ class DoctorMitraStore extends ChangeNotifier {
     }
   }
 
+  void _addPendingDoctorQueue(String createdAt) {
+    const names = [
+      'Dr. Amit Prakash',
+      'Dr. Neha Sinha',
+      'Dr. Saurabh Kumar',
+      'Dr. Priya Kumari',
+      'Dr. Alok Ranjan',
+      'Dr. Shweta Jha',
+      'Dr. Manish Kumar',
+      'Dr. Pooja Singh',
+      'Dr. Sanjay Verma',
+      'Dr. Kavita Kumari',
+      'Dr. Arvind Mishra',
+      'Dr. Nidhi Sharma',
+      'Dr. Deepak Yadav',
+      'Dr. Ritu Raj',
+      'Dr. Pramod Singh',
+      'Dr. Anupama Kumari',
+      'Dr. Rakesh Ranjan',
+      'Dr. Swati Priya',
+      'Dr. Ashok Kumar',
+      'Dr. Garima Sinha',
+      'Dr. Pankaj Jha',
+      'Dr. Sneha Kumari',
+      'Dr. Vivek Anand',
+      'Dr. Madhu Bala',
+      'Dr. Nilesh Kumar',
+      'Dr. Aparna Singh',
+      'Dr. Rahul Raj',
+      'Dr. Monika Kumari',
+      'Dr. Ajay Prasad',
+      'Dr. Sarita Jha',
+      'Dr. Umesh Kumar',
+      'Dr. Kiran Kumari',
+      'Dr. Dinesh Chandra',
+      'Dr. Jyoti Singh',
+      'Dr. Abhishek Kumar',
+      'Dr. Renu Sinha',
+      'Dr. Harishankar Prasad',
+      'Dr. Pallavi Kumari',
+      'Dr. Gaurav Kumar',
+      'Dr. Mamta Singh',
+      'Dr. Om Prakash',
+      'Dr. Suman Kumari',
+      'Dr. Niraj Kumar',
+      'Dr. Rekha Rani',
+      'Dr. Chandan Singh',
+      'Dr. Vandana Jha',
+      'Dr. Rajesh Kumar',
+      'Dr. Archana Kumari',
+      'Dr. Mukesh Pandey',
+      'Dr. Seema Singh',
+    ];
+    const specialties = [
+      'General Physician',
+      'Gynecologist',
+      'Cardiologist',
+      'Dermatologist',
+      'Neurologist',
+      'Dentist',
+      'Pediatrician',
+      'Orthopedic',
+      'ENT Specialist',
+      'Psychiatrist',
+    ];
+    const districts = [
+      'Patna',
+      'Gaya',
+      'Bhagalpur',
+      'Muzaffarpur',
+      'Darbhanga',
+      'Purnea',
+      'Munger',
+      'Nalanda',
+      'Saran',
+      'Bhojpur',
+    ];
+    const degrees = ['MBBS', 'MBBS, MD', 'MBBS, MS', 'BDS', 'MBBS, DNB'];
+
+    for (var i = 0; i < names.length; i++) {
+      final number = (i + 1).toString().padLeft(2, '0');
+      final specialty = specialties[i % specialties.length];
+      final district = districts[i % districts.length];
+      final fee = 300 + (i % 6) * 100;
+      final userId = 'pending-doctor-user-$number';
+      users.add(AppUser(
+        id: userId,
+        role: 'doctor',
+        name: names[i],
+        mobile: '91${(7000000000 + i + 1).toString().substring(2)}',
+        email: 'pending.doctor$number@doctormitra.in',
+        password: 'doctor123',
+        district: district,
+        createdAt: createdAt,
+      ));
+      doctors.add(Doctor(
+        id: 'pending-doctor-$number',
+        userId: userId,
+        name: names[i],
+        specialty: specialty,
+        degree: degrees[i % degrees.length],
+        experience: 2 + (i % 24),
+        registrationNumber: 'BRMC-PENDING-$number',
+        clinicName: '$district Health Clinic $number',
+        address: 'Main Road, $district',
+        district: district,
+        fee: fee.toDouble(),
+        onlineFee: (fee * 0.7).roundToDouble(),
+        rating: 4.4,
+        reviews: 0,
+        status: 'pending',
+        isOnlineAvailable: i % 3 != 0,
+        slots: const ['10:00', '11:00', '17:00'],
+      ));
+    }
+  }
+
   void _seed() {
     final now = DateTime.now().toIso8601String();
     users = [
@@ -875,6 +992,7 @@ class DoctorMitraStore extends ChangeNotifier {
         slots: ['09:00', '09:30', '17:00', '17:30'],
       ),
     ];
+    _addPendingDoctorQueue(now);
     bookings = [
       Booking(
         id: 'booking-1',
@@ -3019,15 +3137,21 @@ class AdminDoctorsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = context.watch<DoctorMitraStore>();
+    final doctors = [...store.doctors]..sort((a, b) {
+        const priority = {'pending': 0, 'approved': 1, 'rejected': 2};
+        final statusCompare = (priority[a.status] ?? 9).compareTo(priority[b.status] ?? 9);
+        if (statusCompare != 0) return statusCompare;
+        return a.name.compareTo(b.name);
+      });
     return AppPage(
       title: 'Manage Doctors',
-      subtitle: 'Approve, edit fees and remove doctors.',
+      subtitle: '${store.pendingDoctors.length} pending approvals - ${store.approvedDoctors.length} approved doctors.',
       actions: [
         IconButton(onPressed: () => showAdminDoctorEditor(context), icon: const Icon(Icons.add)),
       ],
       child: ListView(
         padding: const EdgeInsets.all(18),
-        children: store.doctors.map((doctor) => AdminDoctorCard(doctor: doctor)).toList(),
+        children: doctors.map((doctor) => AdminDoctorCard(doctor: doctor)).toList(),
       ),
     );
   }

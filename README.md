@@ -76,6 +76,11 @@ Demo credentials:
 - Doctor: `rajeev@doctormitra.in` / `doctor123`
 - Admin: `admin@doctormitra.in` / `Rakesh@12032`
 
+Demo seed includes 54 doctors total:
+
+- 3 approved doctors visible to patients
+- 51 pending doctors in the admin approval queue
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

@@ -2,6 +2,9 @@ const assert = require("assert");
 const { seedState, applyAction } = require("../lib/doctorMitraCore");
 
 let state = seedState();
+assert.strictEqual(state.doctors.filter((doctor) => doctor.status === "pending").length, 51);
+assert.strictEqual(state.doctors.filter((doctor) => doctor.status === "approved").length, 3);
+assert.strictEqual(state.users.length, 56);
 
 function action(type, payload) {
   const result = applyAction(state, { type, payload });
