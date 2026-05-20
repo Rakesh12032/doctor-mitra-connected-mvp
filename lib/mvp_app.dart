@@ -329,6 +329,72 @@ class AmbulanceProviderModel {
       );
 }
 
+class AmbulanceRequest {
+  final String id;
+  final String patientId;
+  final String patientName;
+  final String patientMobile;
+  final String district;
+  final String pickupAddress;
+  final String emergencyType;
+  final String providerId;
+  final String status;
+  final String createdAt;
+
+  AmbulanceRequest({
+    required this.id,
+    required this.patientId,
+    required this.patientName,
+    required this.patientMobile,
+    required this.district,
+    required this.pickupAddress,
+    required this.emergencyType,
+    required this.providerId,
+    required this.status,
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'patientId': patientId,
+        'patientName': patientName,
+        'patientMobile': patientMobile,
+        'district': district,
+        'pickupAddress': pickupAddress,
+        'emergencyType': emergencyType,
+        'providerId': providerId,
+        'status': status,
+        'createdAt': createdAt,
+      };
+
+  factory AmbulanceRequest.fromJson(Map<String, dynamic> json) =>
+      AmbulanceRequest(
+        id: json['id'] as String,
+        patientId: json['patientId'] as String,
+        patientName: json['patientName'] as String,
+        patientMobile: json['patientMobile'] as String,
+        district: json['district'] as String,
+        pickupAddress: json['pickupAddress'] as String,
+        emergencyType: json['emergencyType'] as String,
+        providerId: json['providerId'] as String? ?? '',
+        status: json['status'] as String,
+        createdAt: json['createdAt'] as String,
+      );
+
+  AmbulanceRequest copyWith({String? status}) => AmbulanceRequest(
+        id: id,
+        patientId: patientId,
+        patientName: patientName,
+        patientMobile: patientMobile,
+        district: district,
+        pickupAddress: pickupAddress,
+        emergencyType: emergencyType,
+        providerId: providerId,
+        status: status ?? this.status,
+        createdAt: createdAt,
+      );
+}
+
 class HealthCard {
   final String id;
   final String userId;
@@ -801,6 +867,7 @@ class DoctorMitraStore extends ChangeNotifier {
   List<Booking> bookings = [];
   List<Hospital> hospitals = [];
   List<AmbulanceProviderModel> ambulances = [];
+  List<AmbulanceRequest> ambulanceRequests = [];
   List<HealthCard> healthCards = [];
   List<AppNotification> notifications = [];
   List<Prescription> prescriptions = [];
@@ -905,6 +972,9 @@ class DoctorMitraStore extends ChangeNotifier {
         (raw['hospitals'] as List).map((e) => Hospital.fromJson(e)).toList();
     ambulances = (raw['ambulances'] as List)
         .map((e) => AmbulanceProviderModel.fromJson(e))
+        .toList();
+    ambulanceRequests = ((raw['ambulanceRequests'] as List?) ?? [])
+        .map((e) => AmbulanceRequest.fromJson(e))
         .toList();
     healthCards = (raw['healthCards'] as List)
         .map((e) => HealthCard.fromJson(e))
@@ -1233,6 +1303,7 @@ class DoctorMitraStore extends ChangeNotifier {
         isAvailable: true,
       ),
     ];
+    ambulanceRequests = [];
     healthCards = [
       HealthCard(
         id: 'hc-1',
@@ -1267,6 +1338,7 @@ class DoctorMitraStore extends ChangeNotifier {
       'bookings': bookings.map((e) => e.toJson()).toList(),
       'hospitals': hospitals.map((e) => e.toJson()).toList(),
       'ambulances': ambulances.map((e) => e.toJson()).toList(),
+      'ambulanceRequests': ambulanceRequests.map((e) => e.toJson()).toList(),
       'healthCards': healthCards.map((e) => e.toJson()).toList(),
       'notifications': notifications.map((e) => e.toJson()).toList(),
       'prescriptions': prescriptions.map((e) => e.toJson()).toList(),
@@ -2063,6 +2135,85 @@ class AmbulanceService {
       if (error != null) return;
     }
     store.ambulances.removeWhere((ambulance) => ambulance.id == id);
+    await store.persist();
+  }
+
+  Future<AmbulanceRequest> requestAmbulance(
+    DoctorMitraStore store, {
+    required AmbulanceProviderModel provider,
+    required String pickupAddress,
+    required String emergencyType,
+  }) async {
+    final user = store.currentUser!;
+    if (InternetApiLayer.baseUrl.trim().isNotEmpty) {
+      final error = await store.runRemoteAction(
+        'ambulance.request',
+        {
+          'patientId': user.id,
+          'providerId': provider.id,
+          'pickupAddress': pickupAddress,
+          'emergencyType': emergencyType,
+        },
+      );
+      if (error == null) {
+        return store.ambulanceRequests.firstWhere(
+          (request) =>
+              request.patientId == user.id &&
+              request.providerId == provider.id &&
+              request.pickupAddress == pickupAddress,
+        );
+      }
+    }
+    final request = AmbulanceRequest(
+      id: _uuid.v4(),
+      patientId: user.id,
+      patientName: user.name,
+      patientMobile: user.mobile,
+      district: user.district,
+      pickupAddress: pickupAddress.trim(),
+      emergencyType: emergencyType.trim().isEmpty
+          ? 'Emergency ambulance'
+          : emergencyType.trim(),
+      providerId: provider.id,
+      status: 'requested',
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    store.ambulanceRequests.insert(0, request);
+    final adminId = store.adminUserId;
+    if (adminId != null) {
+      store.addNotification(
+        userId: adminId,
+        title: 'Ambulance request',
+        body:
+            '${user.name} requested ${provider.name} from ${request.pickupAddress}.',
+      );
+    }
+    await store.persist();
+    return request;
+  }
+
+  Future<void> updateRequestStatus(
+    DoctorMitraStore store,
+    String requestId,
+    String status,
+  ) async {
+    if (InternetApiLayer.baseUrl.trim().isNotEmpty) {
+      final error = await store.runRemoteAction(
+        'ambulance.updateRequest',
+        {'requestId': requestId, 'status': status},
+      );
+      if (error == null) return;
+    }
+    final index = store.ambulanceRequests
+        .indexWhere((request) => request.id == requestId);
+    if (index == -1) return;
+    final request = store.ambulanceRequests[index].copyWith(status: status);
+    store.ambulanceRequests[index] = request;
+    store.addNotification(
+      userId: request.patientId,
+      title: 'Ambulance ${status.toUpperCase()}',
+      body: 'Your ambulance request is now $status.',
+    );
     await store.persist();
   }
 }
@@ -2952,6 +3103,17 @@ class PatientBookingsScreen extends StatelessWidget {
                         actions: booking.status == 'pending' ||
                                 booking.status == 'accepted'
                             ? [
+                                if (booking.type == 'online' &&
+                                    booking.status == 'accepted')
+                                  TextButton.icon(
+                                    onPressed: () => push(
+                                        context,
+                                        OnlineConsultationScreen(
+                                            booking: booking)),
+                                    icon: const Icon(Icons.video_call,
+                                        color: AppColors.green),
+                                    label: const Text('Join'),
+                                  ),
                                 TextButton.icon(
                                   onPressed: () => store.bookingService
                                       .updateStatus(
@@ -3507,6 +3669,13 @@ List<Widget> doctorBookingActions(BuildContext context, Booking booking) {
   }
   if (booking.status == 'accepted') {
     return [
+      if (booking.type == 'online')
+        TextButton.icon(
+          onPressed: () =>
+              push(context, OnlineConsultationScreen(booking: booking)),
+          icon: const Icon(Icons.video_call, color: AppColors.green),
+          label: const Text('Start call'),
+        ),
       TextButton.icon(
         onPressed: () => push(context, PrescriptionScreen(booking: booking)),
         icon: const Icon(Icons.edit_note, color: AppColors.green),
@@ -3521,6 +3690,113 @@ List<Widget> doctorBookingActions(BuildContext context, Booking booking) {
     ];
   }
   return [];
+}
+
+class OnlineConsultationScreen extends StatefulWidget {
+  final Booking booking;
+
+  const OnlineConsultationScreen({super.key, required this.booking});
+
+  @override
+  State<OnlineConsultationScreen> createState() =>
+      _OnlineConsultationScreenState();
+}
+
+class _OnlineConsultationScreenState extends State<OnlineConsultationScreen> {
+  bool muted = false;
+  bool cameraOn = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<DoctorMitraStore>();
+    final doctor = store.doctorById(widget.booking.doctorId);
+    return AppPage(
+      title: 'Online Consultation',
+      subtitle: '${widget.booking.date}, ${widget.booking.time}',
+      showBack: true,
+      child: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Container(
+            height: 360,
+            decoration: BoxDecoration(
+              color: AppColors.green,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: softShadow,
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircleAvatar(
+                        radius: 54,
+                        backgroundColor: Colors.white24,
+                        child: Icon(Icons.medical_services,
+                            color: Colors.white, size: 54),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(doctor.name,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900)),
+                      Text(widget.booking.patientName,
+                          style: const TextStyle(color: Colors.white70)),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  right: 16,
+                  top: 16,
+                  child: Container(
+                    width: 108,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Icon(
+                      cameraOn ? Icons.person : Icons.videocam_off,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          PremiumCard(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton.filled(
+                  onPressed: () => setState(() => muted = !muted),
+                  icon: Icon(muted ? Icons.mic_off : Icons.mic),
+                ),
+                IconButton.filled(
+                  onPressed: () => setState(() => cameraOn = !cameraOn),
+                  icon: Icon(cameraOn ? Icons.videocam : Icons.videocam_off),
+                ),
+                IconButton.filled(
+                  style: IconButton.styleFrom(backgroundColor: AppColors.red),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.call_end),
+                ),
+              ],
+            ),
+          ),
+          const InfoStrip(
+              icon: Icons.security,
+              text:
+                  'Secure demo room for this booking. Prescription can be written after consultation.'),
+        ],
+      ),
+    );
+  }
 }
 
 class PrescriptionScreen extends StatefulWidget {
@@ -3933,6 +4209,30 @@ class AdminSettingsScreen extends StatelessWidget {
           ...store.ambulances.map((amb) => InfoStrip(
               icon: Icons.emergency,
               text: '${amb.name} • ${amb.district} • ${amb.phone}')),
+          const SectionTitle('Patient ambulance requests'),
+          if (store.ambulanceRequests.isEmpty)
+            const EmptyState(
+                icon: Icons.emergency,
+                title: 'No ambulance requests',
+                text: 'Patient emergency requests will appear here.'),
+          ...store.ambulanceRequests.map((request) => AmbulanceRequestCard(
+                request: request,
+                actions: [
+                  TextButton.icon(
+                    onPressed: () => store.ambulanceService
+                        .updateRequestStatus(store, request.id, 'dispatched'),
+                    icon:
+                        const Icon(Icons.check_circle, color: AppColors.green),
+                    label: const Text('Dispatch'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => store.ambulanceService
+                        .updateRequestStatus(store, request.id, 'closed'),
+                    icon: const Icon(Icons.done_all, color: AppColors.green),
+                    label: const Text('Close'),
+                  ),
+                ],
+              )),
           const SectionTitle('Reports'),
           ReportCard(
               label: 'Doctor approval conversion',
@@ -3983,9 +4283,12 @@ class AmbulancePatientScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = context.watch<DoctorMitraStore>();
+    final myRequests = store.ambulanceRequests
+        .where((request) => request.patientId == store.currentUser?.id)
+        .toList();
     return AppPage(
       title: 'Ambulance',
-      subtitle: 'Emergency providers and one-tap calling.',
+      subtitle: 'Emergency providers, request tracking and one-tap calling.',
       showBack: true,
       child: ListView(
         padding: const EdgeInsets.all(18),
@@ -3996,6 +4299,18 @@ class AmbulancePatientScreen extends StatelessWidget {
             icon: Icons.emergency,
           ),
           const SizedBox(height: 16),
+          if (store.ambulances.isNotEmpty)
+            PrimaryAction(
+              label: 'Request nearest ambulance',
+              icon: Icons.emergency_share,
+              onPressed: () => push(context,
+                  AmbulanceRequestScreen(provider: store.ambulances.first)),
+            ),
+          if (myRequests.isNotEmpty) ...[
+            const SectionTitle('My ambulance requests'),
+            ...myRequests
+                .map((request) => AmbulanceRequestCard(request: request)),
+          ],
           ...store.ambulances.map((amb) => PremiumCard(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -4010,8 +4325,167 @@ class AmbulancePatientScreen extends StatelessWidget {
                     onPressed: () => store.ambulanceService.callProvider(amb),
                     icon: const Icon(Icons.call, color: AppColors.green),
                   ),
+                  onTap: () =>
+                      push(context, AmbulanceRequestScreen(provider: amb)),
                 ),
               )),
+        ],
+      ),
+    );
+  }
+}
+
+class AmbulanceRequestScreen extends StatefulWidget {
+  final AmbulanceProviderModel provider;
+
+  const AmbulanceRequestScreen({super.key, required this.provider});
+
+  @override
+  State<AmbulanceRequestScreen> createState() => _AmbulanceRequestScreenState();
+}
+
+class _AmbulanceRequestScreenState extends State<AmbulanceRequestScreen> {
+  final address = TextEditingController();
+  final emergency = TextEditingController(text: 'Emergency pickup');
+
+  @override
+  void dispose() {
+    address.dispose();
+    emergency.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<DoctorMitraStore>();
+    final user = store.currentUser!;
+    return AppPage(
+      title: 'Request Ambulance',
+      subtitle: widget.provider.name,
+      showBack: true,
+      child: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          PremiumHeader(
+            title: widget.provider.name,
+            subtitle: '${widget.provider.district} - ${widget.provider.phone}',
+            icon: Icons.local_taxi,
+          ),
+          const SizedBox(height: 16),
+          InfoStrip(
+              icon: Icons.person,
+              text: '${user.name} - +91 ${user.mobile} - ${user.district}'),
+          AppField(
+            controller: address,
+            label: 'Pickup address / landmark',
+            icon: Icons.location_on,
+            maxLines: 2,
+          ),
+          AppField(
+            controller: emergency,
+            label: 'Emergency type',
+            icon: Icons.emergency,
+          ),
+          PrimaryAction(
+            label: 'Send ambulance request',
+            icon: Icons.send,
+            onPressed: () async {
+              if (address.text.trim().isEmpty) {
+                showSuccess(context, 'Address needed',
+                    'Please enter pickup address or landmark.');
+                return;
+              }
+              final request = await store.ambulanceService.requestAmbulance(
+                store,
+                provider: widget.provider,
+                pickupAddress: address.text,
+                emergencyType: emergency.text,
+              );
+              if (!context.mounted) return;
+              showSuccess(context, 'Request sent',
+                  'Admin can see this ambulance request now.');
+              pushReplacement(
+                  context, AmbulanceRequestReceiptScreen(request: request));
+            },
+          ),
+          SecondaryAction(
+            label: 'Call provider now',
+            icon: Icons.call,
+            onPressed: () =>
+                store.ambulanceService.callProvider(widget.provider),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AmbulanceRequestReceiptScreen extends StatelessWidget {
+  final AmbulanceRequest request;
+
+  const AmbulanceRequestReceiptScreen({super.key, required this.request});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppPage(
+      title: 'Ambulance requested',
+      subtitle: 'Live status from admin panel.',
+      showBack: true,
+      child: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          const Icon(Icons.check_circle, color: AppColors.green, size: 84),
+          const SizedBox(height: 16),
+          AmbulanceRequestCard(request: request),
+          PrimaryAction(
+            label: 'Back to ambulance',
+            icon: Icons.local_taxi,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AmbulanceRequestCard extends StatelessWidget {
+  final AmbulanceRequest request;
+  final List<Widget> actions;
+
+  const AmbulanceRequestCard({
+    super.key,
+    required this.request,
+    this.actions = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PremiumCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: Color(0xFFFFEBEE),
+                child: Icon(Icons.local_taxi, color: AppColors.red),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(request.patientName,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 17)),
+              ),
+              StatusChip(request.status, statusColor(request.status)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          InfoLine(Icons.phone, 'Mobile', '+91 ${request.patientMobile}'),
+          InfoLine(Icons.location_on, 'Pickup', request.pickupAddress),
+          InfoLine(Icons.emergency, 'Emergency', request.emergencyType),
+          InfoLine(Icons.map, 'District', request.district),
+          if (actions.isNotEmpty)
+            Wrap(alignment: WrapAlignment.end, spacing: 8, children: actions),
         ],
       ),
     );
@@ -4698,8 +5172,13 @@ class StatusChip extends StatelessWidget {
 
 Color statusColor(String status) {
   return switch (status) {
-    'accepted' || 'approved' || 'completed' => AppColors.green,
-    'pending' => AppColors.amber,
+    'accepted' ||
+    'approved' ||
+    'completed' ||
+    'dispatched' ||
+    'closed' =>
+      AppColors.green,
+    'pending' || 'requested' => AppColors.amber,
     'cancelled' || 'rejected' => AppColors.red,
     _ => AppColors.muted,
   };

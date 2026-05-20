@@ -325,6 +325,7 @@ function seedState() {
         isAvailable: true
       }
     ],
+    ambulanceRequests: [],
     healthCards: [
       {
         id: "hc-1",
@@ -364,6 +365,7 @@ function normalizeState(raw) {
     bookings: Array.isArray(state.bookings) ? state.bookings : seed.bookings,
     hospitals: Array.isArray(state.hospitals) ? state.hospitals : seed.hospitals,
     ambulances: Array.isArray(state.ambulances) ? state.ambulances : seed.ambulances,
+    ambulanceRequests: Array.isArray(state.ambulanceRequests) ? state.ambulanceRequests : [],
     healthCards: Array.isArray(state.healthCards) ? state.healthCards : seed.healthCards,
     notifications: Array.isArray(state.notifications) ? state.notifications : [],
     prescriptions: Array.isArray(state.prescriptions) ? state.prescriptions : [],
@@ -383,6 +385,7 @@ function validateState(state) {
     "bookings",
     "hospitals",
     "ambulances",
+    "ambulanceRequests",
     "healthCards",
     "notifications",
     "prescriptions",
@@ -784,6 +787,41 @@ function applyAction(inputState, action) {
     case "ambulance.delete": {
       state.ambulances = state.ambulances.filter((amb) => amb.id !== payload.id);
       result = { id: payload.id };
+      break;
+    }
+
+    case "ambulance.request": {
+      const user = findUser(state, payload.patientId);
+      const provider = state.ambulances.find((item) => item.id === payload.providerId);
+      if (!provider) throw httpError(404, "Ambulance provider not found");
+      const request = {
+        id: id("ambreq"),
+        patientId: user.id,
+        patientName: user.name,
+        patientMobile: user.mobile,
+        district: user.district || provider.district || "Patna",
+        pickupAddress: cleanText(payload.pickupAddress),
+        emergencyType: cleanText(payload.emergencyType) || "Emergency ambulance",
+        providerId: provider.id,
+        status: "requested",
+        createdAt: now()
+      };
+      if (!request.pickupAddress) throw httpError(400, "Pickup address is required");
+      state.ambulanceRequests.unshift(request);
+      notify(state, "admin-1", "Ambulance request", `${user.name} requested ${provider.name} from ${request.pickupAddress}.`);
+      result = { request };
+      break;
+    }
+
+    case "ambulance.updateRequest": {
+      const allowed = ["requested", "dispatched", "closed", "cancelled"];
+      const status = cleanText(payload.status);
+      if (!allowed.includes(status)) throw httpError(400, "Invalid ambulance request status");
+      const request = state.ambulanceRequests.find((item) => item.id === payload.requestId);
+      if (!request) throw httpError(404, "Ambulance request not found");
+      request.status = status;
+      notify(state, request.patientId, `Ambulance ${status.toUpperCase()}`, `Your ambulance request is now ${status}.`);
+      result = { request };
       break;
     }
 

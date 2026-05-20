@@ -98,4 +98,23 @@ action("doctor.savePrescription", {
 assert.strictEqual(state.bookings.find((item) => item.id === bookingId).status, "completed");
 assert.strictEqual(state.prescriptions.length, 1);
 
+const ambulanceRequest = action("ambulance.request", {
+  patientId: "patient-1",
+  providerId: "amb-1",
+  pickupAddress: "Boring Road, Patna",
+  emergencyType: "Emergency pickup"
+});
+assert.strictEqual(ambulanceRequest.result.request.status, "requested");
+assert(
+  state.notifications.some((item) => item.userId === "admin-1" && item.title === "Ambulance request")
+);
+action("ambulance.updateRequest", {
+  requestId: ambulanceRequest.result.request.id,
+  status: "dispatched"
+});
+assert.strictEqual(
+  state.ambulanceRequests.find((item) => item.id === ambulanceRequest.result.request.id).status,
+  "dispatched"
+);
+
 console.log("Doctor Mitra backend flow test passed");

@@ -64,6 +64,29 @@ void main() {
       isTrue,
     );
 
+    await store.loginAs(patient);
+    final ambulanceRequest = await store.ambulanceService.requestAmbulance(
+      store,
+      provider: store.ambulances.first,
+      pickupAddress: 'Boring Road, Patna',
+      emergencyType: 'Emergency pickup',
+    );
+    expect(ambulanceRequest.status, 'requested');
+    expect(
+      store.notificationService
+          .forUser(store, admin.id)
+          .any((note) => note.title == 'Ambulance request'),
+      isTrue,
+    );
+    await store.ambulanceService
+        .updateRequestStatus(store, ambulanceRequest.id, 'dispatched');
+    expect(
+      store.ambulanceRequests
+          .firstWhere((request) => request.id == ambulanceRequest.id)
+          .status,
+      'dispatched',
+    );
+
     store.dispose();
   });
 
