@@ -618,6 +618,138 @@ class SupabaseApiLayer {
   }
 }
 
+class SupabaseAuthLayer {
+  static bool get isConfigured => SupabaseApiLayer.isConfiguredStatic;
+
+  static Uri _uri(String path, [Map<String, String>? query]) {
+    final base = SupabaseApiLayer.projectUrl.replaceAll(RegExp(r'/+$'), '');
+    return Uri.parse('$base$path').replace(queryParameters: query);
+  }
+
+  static Map<String, String> get _headers => {
+        'apikey': SupabaseApiLayer.anonKey,
+        'Authorization': 'Bearer ${SupabaseApiLayer.anonKey}',
+        'Content-Type': 'application/json',
+      };
+
+  static String phoneForIndia(String mobile) {
+    final digits = mobile.replaceAll(RegExp(r'\D'), '');
+    final tenDigit =
+        digits.length > 10 ? digits.substring(digits.length - 10) : digits;
+    return '+91$tenDigit';
+  }
+
+  static String _authError(http.Response response, String fallback) {
+    try {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['msg'] as String? ??
+          body['message'] as String? ??
+          body['error_description'] as String? ??
+          body['error'] as String? ??
+          fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  static Future<String?> sendPhoneOtp(String mobile) async {
+    if (!isConfigured) return 'Supabase Auth is not configured';
+    try {
+      final response = await http
+          .post(
+            _uri('/auth/v1/otp'),
+            headers: _headers,
+            body: jsonEncode({
+              'phone': phoneForIndia(mobile),
+              'create_user': true,
+              'data': {'role': 'patient'},
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode >= 200 && response.statusCode < 300) return null;
+      return _authError(response, 'Could not send Supabase OTP');
+    } catch (_) {
+      return 'Supabase Auth unavailable. Demo OTP 123456 still works.';
+    }
+  }
+
+  static Future<String?> verifyPhoneOtp({
+    required String mobile,
+    required String otp,
+  }) async {
+    if (!isConfigured) return 'Supabase Auth is not configured';
+    try {
+      final response = await http
+          .post(
+            _uri('/auth/v1/verify'),
+            headers: _headers,
+            body: jsonEncode({
+              'phone': phoneForIndia(mobile),
+              'token': otp.trim(),
+              'type': 'sms',
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode >= 200 && response.statusCode < 300) return null;
+      return _authError(response, 'Invalid Supabase OTP');
+    } catch (_) {
+      return 'Supabase Auth unavailable. Use demo OTP 123456.';
+    }
+  }
+
+  static Future<String?> signInWithPassword({
+    required String email,
+    required String password,
+  }) async {
+    if (!isConfigured) return 'Supabase Auth is not configured';
+    try {
+      final response = await http
+          .post(
+            _uri('/auth/v1/token', {'grant_type': 'password'}),
+            headers: _headers,
+            body: jsonEncode({
+              'email': email.trim(),
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode >= 200 && response.statusCode < 300) return null;
+      return _authError(response, 'Invalid Supabase login credentials');
+    } catch (_) {
+      return 'Supabase Auth unavailable';
+    }
+  }
+
+  static Future<String?> signUpWithPassword({
+    required String email,
+    required String password,
+    required String name,
+    required String role,
+  }) async {
+    if (!isConfigured) return 'Supabase Auth is not configured';
+    try {
+      final response = await http
+          .post(
+            _uri('/auth/v1/signup'),
+            headers: _headers,
+            body: jsonEncode({
+              'email': email.trim(),
+              'password': password,
+              'data': {
+                'name': name.trim(),
+                'role': role,
+              },
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode >= 200 && response.statusCode < 300) return null;
+      return _authError(response, 'Could not create Supabase Auth user');
+    } catch (_) {
+      return 'Supabase Auth unavailable. Check internet and Supabase settings.';
+    }
+  }
+}
+
 class CloudApiLayer {
   final SupabaseApiLayer _supabase = SupabaseApiLayer();
   final InternetApiLayer _internet = InternetApiLayer();
@@ -1273,6 +1405,17 @@ class DoctorMitraStore extends ChangeNotifier {
 }
 
 class AuthService {
+  Future<String?> sendPatientOtp({
+    required String mobile,
+  }) async {
+    final normalized = mobile.replaceAll(RegExp(r'\D'), '');
+    if (normalized.length < 10) return 'Enter a valid 10 digit mobile number';
+    if (!SupabaseAuthLayer.isConfigured) {
+      return 'Supabase Auth is not configured. Use demo OTP 123456.';
+    }
+    return SupabaseAuthLayer.sendPhoneOtp(normalized);
+  }
+
   Future<String?> patientOtpLogin(
     DoctorMitraStore store, {
     required String mobile,
@@ -1287,9 +1430,16 @@ class AuthService {
       if (error == null) return null;
       if (error != 'Internet API unavailable') return error;
     }
-    if (otp != '123456') return 'Use demo OTP 123456';
     final normalized = mobile.replaceAll(RegExp(r'\D'), '');
     if (normalized.length != 10) return 'Enter a valid 10 digit mobile number';
+    if (otp.trim() != '123456') {
+      if (!SupabaseAuthLayer.isConfigured) return 'Use demo OTP 123456';
+      final otpError = await SupabaseAuthLayer.verifyPhoneOtp(
+        mobile: normalized,
+        otp: otp,
+      );
+      if (otpError != null) return otpError;
+    }
     var user = store.users
         .where((item) => item.role == 'patient' && item.mobile == normalized)
         .firstOrNull;
@@ -1333,6 +1483,13 @@ class AuthService {
       if (error == null) return null;
       if (error != 'Internet API unavailable') return error;
     }
+    if (SupabaseAuthLayer.isConfigured) {
+      final authError = await SupabaseAuthLayer.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      if (authError != null) return authError;
+    }
     final user = store.users
         .where((item) =>
             item.role == 'admin' &&
@@ -1373,6 +1530,13 @@ class AuthService {
           ? 'Registration pending admin approval'
           : 'Registration rejected by admin';
     }
+    if (SupabaseAuthLayer.isConfigured && !user.id.startsWith('doctor-user-')) {
+      final authError = await SupabaseAuthLayer.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      if (authError != null) return authError;
+    }
     await store.loginAs(user);
     return null;
   }
@@ -1412,6 +1576,15 @@ class AuthService {
     if (store.users
         .any((user) => user.email.toLowerCase() == email.toLowerCase())) {
       return 'Email already registered';
+    }
+    if (SupabaseAuthLayer.isConfigured) {
+      final authError = await SupabaseAuthLayer.signUpWithPassword(
+        email: email,
+        password: password,
+        name: name,
+        role: 'doctor',
+      );
+      if (authError != null) return authError;
     }
     final user = AppUser(
       id: _uuid.v4(),
@@ -2104,6 +2277,8 @@ class _PatientOtpLoginScreenState extends State<PatientOtpLoginScreen> {
   final mobile = TextEditingController(text: '9876543210');
   final otp = TextEditingController(text: '123456');
   String? error;
+  String? notice;
+  bool sendingOtp = false;
 
   @override
   void dispose() {
@@ -2116,11 +2291,38 @@ class _PatientOtpLoginScreenState extends State<PatientOtpLoginScreen> {
   Widget build(BuildContext context) {
     return LoginScaffold(
       title: 'Patient OTP Login',
-      subtitle: 'Patients use a fast OTP flow. Demo OTP is 123456.',
+      subtitle: 'Supabase phone OTP is active when SMS is configured.',
       icon: Icons.phone_android,
       children: [
         AppField(controller: mobile, label: 'Mobile number', icon: Icons.phone),
         AppField(controller: otp, label: 'OTP', icon: Icons.password),
+        SecondaryAction(
+          label: sendingOtp ? 'Sending OTP...' : 'Send Supabase OTP',
+          icon: Icons.sms,
+          onPressed: sendingOtp
+              ? () {}
+              : () async {
+                  setState(() {
+                    sendingOtp = true;
+                    error = null;
+                    notice = null;
+                  });
+                  final result = await context
+                      .read<DoctorMitraStore>()
+                      .authService
+                      .sendPatientOtp(mobile: mobile.text);
+                  if (!mounted) return;
+                  setState(() {
+                    sendingOtp = false;
+                    if (result == null) {
+                      notice = 'OTP sent through Supabase.';
+                    } else {
+                      error = result;
+                    }
+                  });
+                },
+        ),
+        if (notice != null) InfoStrip(icon: Icons.check_circle, text: notice!),
         if (error != null) ErrorText(error!),
         PrimaryAction(
           label: 'Verify and continue',
