@@ -2590,8 +2590,12 @@ class _PatientOtpLoginScreenState extends State<PatientOtpLoginScreen> {
               mobile: mobile.text,
               otp: otp.text,
             );
-            if (!mounted) return;
-            if (result != null) setState(() => error = result);
+            if (!context.mounted) return;
+            if (result != null) {
+              setState(() => error = result);
+              return;
+            }
+            openActivePanel(context);
           },
         ),
       ],
@@ -2731,7 +2735,12 @@ class _DoctorAuthScreenState extends State<DoctorAuthScreen> {
                     email: email.text,
                     password: password.text,
                   );
-            if (!mounted) return;
+            if (!context.mounted) return;
+            if (!register && result == null) {
+              setState(() => message = null);
+              openActivePanel(context);
+              return;
+            }
             setState(() {
               message = result ??
                   (register
@@ -2789,8 +2798,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               email: email.text,
               password: password.text,
             );
-            if (!mounted) return;
-            if (result != null) setState(() => error = result);
+            if (!context.mounted) return;
+            if (result != null) {
+              setState(() => error = result);
+              return;
+            }
+            openActivePanel(context);
           },
         ),
       ],
@@ -5000,6 +5013,10 @@ void push(BuildContext context, Widget screen) {
 void pushReplacement(BuildContext context, Widget screen) {
   Navigator.of(context)
       .pushReplacement(MaterialPageRoute(builder: (_) => screen));
+}
+
+void openActivePanel(BuildContext context) {
+  Navigator.of(context).popUntil((route) => route.isFirst);
 }
 
 InputDecoration inputDecoration(String label, IconData icon) => InputDecoration(

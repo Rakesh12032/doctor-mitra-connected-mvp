@@ -104,4 +104,22 @@ void main() {
     expect(find.text('Doctor Login'), findsOneWidget);
     expect(find.text('Admin Login'), findsOneWidget);
   });
+
+  testWidgets('admin login opens dashboard without needing back',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DoctorMitraRoleApp());
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Admin Login'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enter admin panel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Admin Dashboard'), findsOneWidget);
+    expect(find.text('Enter admin panel'), findsNothing);
+  });
 }
